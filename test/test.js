@@ -28,8 +28,8 @@ function publishMessage() {
 }
 
 // create the first worker
-const worker1 = q.createWorker(workerConfig, function({id, data}) {
-  console.log('>>worker1 handling message', id, data);
+const worker1 = q.createWorker(workerConfig, function(message) {
+  console.log('>>worker1 handling message', message);
   return new Promise((resolve) => {
     setTimeout(function() {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
@@ -38,8 +38,8 @@ const worker1 = q.createWorker(workerConfig, function({id, data}) {
 });
 
 // create the second worker
-const worker2 = q.createWorker(workerConfig, function({id, data}) {
-  console.log('>>worker2 handling message', id, data);
+const worker2 = q.createWorker(workerConfig, function(message) {
+  console.log('>>worker2 handling message', message);
   return new Promise((resolve) => {
     setTimeout(function() {
       resolve({status: JobProcessedStatus.ok, message: 'success'});

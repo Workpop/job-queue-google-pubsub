@@ -43,9 +43,9 @@ export class JobQueueWorker {
       const messages = first(data);
       return Promise.all(map(messages, (message: Object): Promise<*> => {
         const ackId = message.ackId;
-
+        const messageContent = message.data;
         // process the job
-        return self.jobHandler(message).then((result: Object): Promise<*> => {
+        return self.jobHandler(messageContent).then((result: Object): Promise<*> => {
           // handled job successfully
 
           self._acknowledge(ackId);
