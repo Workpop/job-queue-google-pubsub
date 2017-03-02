@@ -1,10 +1,14 @@
-import { times } from 'lodash';
-import { JobQueuePublisher, JobQueueWorker, JobProcessedStatus } from '../src/index';
+import { JobQueue, JobProcessedStatus } from '../src/index';
 import { queueConfig, workerConfig, topic } from './test-config';
 
-const publisher = new JobQueuePublisher(queueConfig);
-
 const messagesToPublish = 100;
+const delayBetweenPublishes = 3000;
+const timeToProcessJob = 1000;
+
+const q = new JobQueue(queueConfig);
+
+const publisher = q.createPublisher();
+
 let messageCount = 0;
 function publishMessage() {
   const messageContent = `test message ${messageCount}`;
@@ -15,7 +19,7 @@ function publishMessage() {
         setTimeout(() => {
           publishMessage();
           resolve();
-        }, 5000);
+        }, delayBetweenPublishes);
       });
     }
   }).catch((err) => {
@@ -23,25 +27,23 @@ function publishMessage() {
   });
 }
 
-publishMessage();
-
 // create the first worker
-const worker1 = new JobQueueWorker(queueConfig, workerConfig, function({id, data}) {
+const worker1 = q.createWorker(workerConfig, function({id, data}) {
   console.log('>>worker1 handling message', id, data);
   return new Promise((resolve) => {
     setTimeout(function() {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
-    }, 1000);
+    }, timeToProcessJob);
   });
 });
 
 // create the second worker
-const worker2 = new JobQueueWorker(queueConfig, workerConfig, function({id, data}) {
+const worker2 = q.createWorker(workerConfig, function({id, data}) {
   console.log('>>worker2 handling message', id, data);
   return new Promise((resolve) => {
     setTimeout(function() {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
-    }, 1000);
+    }, timeToProcessJob);
   });
 });
 
@@ -54,6 +56,9 @@ worker1.start().then((result) => {
 worker2.start().then((result) => {
   console.log('completed');
 });
+
+// start publishing messages
+publishMessage();
 
 setTimeout(function() {
   worker1.stop();
