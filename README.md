@@ -22,19 +22,19 @@ A worker requires a function which will process the job from the queue.
 ```
 import { JobQueue, JobProcessedStatus } from '@workpop/job-queue-google-pubsub';
 
-const q = new JobQueue(queueConfig)e
+const q = new JobQueue(queueConfig);
 const worker = q.createWorker(workerConfig, function(message) {
   return new Promise((resolve, reject) => {
     // do your processing here
 
     // if processing succeeded
-    resolve({status: JobProcessedStatus.ok, message: 'success'});
+    resolve({status: JobProcessedStatus.ok, message: 'yay it worked'});
 
     // or if something bad happened
     //reject({status: JobProcessedStatus.failed, message: 'oh this is bad'});
 
-    // or if something bad happened but you want to retry
-    //reject({status: JobProcessedStatus.failedRetryRequested, message: 'oh this is bad but lets try it again (requeue)'});
+    // or if something bad happened but you want to retry (requeue the message)
+    //reject({status: JobProcessedStatus.failedRetryRequested, message: 'oh this is bad but lets try it again'});
   });
 });
 worker.start().then((stoppedReason) => {
