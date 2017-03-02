@@ -27,7 +27,7 @@ export class JobQueueWorker {
   }
 
   _acknowledge(ackId: string) {
-    // acknowledge
+    _log('TRACE', 'ack', ackId);
     this.subscription.ack(ackId);
   }
 
@@ -38,7 +38,6 @@ export class JobQueueWorker {
     };
 
     _log('TRACE', 'Polling Job Queue...');
-
     return self.subscription.pull(opts)
     .then((data: Array<*>): Promise<*> => {
       const messages = first(data);
@@ -49,9 +48,7 @@ export class JobQueueWorker {
         return self.jobHandler(message).then((result: Object): Promise<*> => {
           // handled job successfully
 
-          _log('TRACE', 'acking message', ackId);
           self._acknowledge(ackId);
-
           return Promise.resolve(result);
         }).catch((result: Object): Promise<*> => {
           // there was an error processing the job

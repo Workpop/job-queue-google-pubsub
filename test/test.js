@@ -1,25 +1,29 @@
+import { times } from 'lodash';
 import { JobQueuePublisher, JobQueueWorker, JobProcessedStatus } from '../src/index';
+import { queueConfig, workerConfig, topic } from './test-config';
 
-import { queueConfig, publisherConfig, workerConfig, topic } from './test-config';
+const publisher = new JobQueuePublisher(queueConfig);
 
-const publisher = new JobQueuePublisher(queueConfig, publisherConfig);
-
-publisher.publish(topic, 'hello').then((result) => {
-  console.log(`Publish result: ${result}`);
-}).catch((err) => {
-  console.log('Error:', err);
-});
-
-publisher.publish(topic, 'goodbye').then((result) => {
-  console.log(`Publish result: ${result}`);
-}).catch((err) => {
-  console.log('Error:', err);
-});
-
-function handler({id, data}) {
-  console.log('>>handling message', id, data);
-  return Promise.resolve({status: JobProcessedStatus.ok, message: 'success'});
+const messagesToPublish = 100;
+let messageCount = 0;
+function publishMessage() {
+  const messageContent = `test message ${messageCount}`;
+  publisher.publish(topic, messageContent).then(() => {
+    console.log(`Published message: ${messageContent}`);
+    if (++messageCount < messagesToPublish) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          publishMessage();
+          resolve();
+        }, 5000);
+      });
+    }
+  }).catch((err) => {
+    console.log('Error:', err);
+  });
 }
+
+publishMessage();
 
 // create the first worker
 const worker1 = new JobQueueWorker(queueConfig, workerConfig, function({id, data}) {
@@ -27,7 +31,7 @@ const worker1 = new JobQueueWorker(queueConfig, workerConfig, function({id, data
   return new Promise((resolve) => {
     setTimeout(function() {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
-    }, 3000);
+    }, 1000);
   });
 });
 
@@ -37,7 +41,7 @@ const worker2 = new JobQueueWorker(queueConfig, workerConfig, function({id, data
   return new Promise((resolve) => {
     setTimeout(function() {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
-    }, 3000);
+    }, 1000);
   });
 });
 
@@ -53,7 +57,7 @@ worker2.start().then((result) => {
 
 setTimeout(function() {
   worker1.stop();
-}, 60000);
+}, 600000);
 setTimeout(function() {
   worker2.stop();
-}, 60000);
+}, 600000);

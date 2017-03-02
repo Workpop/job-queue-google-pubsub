@@ -9,9 +9,6 @@ export const queueConfig = {
   credentials,
 };
 
-export const publisherConfig = {
-};
-
 export const workerConfig = {
   subscription: 'projects/pubsubtest-159421/subscriptions/testpush',
   topic,
