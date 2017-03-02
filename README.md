@@ -2,9 +2,38 @@
 
 Job Queue implementation backed by Google PubSub
 
+## Configuring the queue
+
+To configure the queue you will need to set up a Google Cloud Platform
+project as well as create a Google Pub/Sub topic and subscriber.
+
+The following shows building configuration for the JobQueue:
+```javascript
+// from your google cloud console
+const projectId = 'pubsubtest-12345';
+
+// get your credentials from your google cloud console and put them in the file test-creds.json
+const credentials = require('./test-creds.json');
+
+// use the topic from your google cloud pubsub console
+const topic = 'projects/pubsubtest-12345/topics/abc';
+
+const queueConfig = {
+  projectId,
+  credentials,
+};
+
+const workerConfig = {
+  subscription: 'projects/pubsubtest-159421/subscriptions/mysub',
+  topic,
+};
+
+const q = new JobQueue(queueConfig);
+```
+
 ## Publishing a job to the queue
 
-```
+```javascript
 import { JobQueue } from '@workpop/job-queue-google-pubsub';
 
 // get the topic from your Google PubSub dashboard
@@ -19,7 +48,7 @@ publisher.publish(topic, 'Hello from Workpop');
 
 A worker requires a function which will process the job from the queue.
 
-```
+```javascript
 import { JobQueue, JobProcessedStatus } from '@workpop/job-queue-google-pubsub';
 
 const q = new JobQueue(queueConfig);
@@ -53,6 +82,6 @@ The promise value must contain a status property and an optional message propert
 
 ## Stopping a job queue worker
 To stop the job queue worker (on the next poll):
-```
+```javascript
 worker.stop();
 ```
