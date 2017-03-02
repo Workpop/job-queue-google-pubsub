@@ -46,9 +46,9 @@ The promise value must contain a status property and an optional message propert
 
 | Job processing succeeded | Requires retry | Promise resolved/rejected | Promise status        |
 | ------------------------ | -------------- | ------------------------- | --------------------- |
-| Yes                      | N/A            | Resolved                  | JobProcessedStatus.ok |
-| No                       | No             | Rejected                  | JobProcessedStatus.failed |
-| No                       | Yes            | Rejected                  | JobProcessedStatus.failedRetryRequested |
+| Yes                      | N/A            | resolve                   | JobProcessedStatus.ok |
+| No                       | No             | reject                    | JobProcessedStatus.failed |
+| No                       | Yes            | reject                    | JobProcessedStatus.failedRetryRequested |
 
 
 ## Stopping a job queue worker
