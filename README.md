@@ -1,12 +1,16 @@
-# job-queue-google-pubsub
+# Cutie
+![](http://images.freeimages.com/images/premium/large-thumbs/3675/36752438-orange-slice.jpg)
 
-Job Queue implementation backed by Google PubSub
+A Job Queue implementation backed by Google PubSub.
+
+## Getting Started
+
+`yarn`
+
+To get started using Cutie, you will need to set up a [Google Cloud Platform
+Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) as well as create a [Google Pub/Sub topic and subscriber](https://cloud.google.com/pubsub/docs/overview).
 
 ## Configuring the queue
-
-To configure the queue you will need to set up a Google Cloud Platform
-project as well as create a Google Pub/Sub topic and subscriber.
-
 The following shows building configuration for the JobQueue:
 ```javascript
 // from your google cloud console
