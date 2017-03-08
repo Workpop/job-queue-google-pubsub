@@ -8,7 +8,7 @@
     "lint": "eslint ./src",
     "flow": "flow check",
     "test": "babel-node test/test.js",
-    "tag-release": "standard-version"
+    "release": "standard-version"
   },
   "keywords": [
     "job",
