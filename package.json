@@ -2,7 +2,7 @@
   "name": "@workpop/job-queue-google-pubsub",
   "version": "0.2.1",
   "description": "Job queue over Google pubsub",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "babel ./src --ignore test --out-dir ./lib",
     "lint": "eslint ./src",
