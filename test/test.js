@@ -11,7 +11,9 @@ const publisher = q.createPublisher();
 
 let messageCount = 0;
 function publishMessage() {
-  const messageContent = `test message ${messageCount}`;
+  const messageContent = {
+    messageCount,
+  };
   publisher.publish(topic, messageContent).then(() => {
     console.log(`Published message: ${messageContent}`);
     if (++messageCount < messagesToPublish) {
@@ -39,7 +41,7 @@ const worker1 = q.createWorker(workerConfig, function(message) {
 
 // create the second worker
 const worker2 = q.createWorker(workerConfig, function(message) {
-  console.log('>>worker2 handling message', message);
+  console.log('>>worker2 handling message', message, message.messageCount);
   return new Promise((resolve) => {
     setTimeout(function() {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
