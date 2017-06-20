@@ -1,6 +1,7 @@
 // @flow
 import { first, map, partial, isUndefined } from 'lodash';
 import log from './log';
+import { msleep } from 'sleep';
 
 const pubsub = require('@google-cloud/pubsub');
 
@@ -18,14 +19,14 @@ export class JobQueueWorker {
   jobHandler: Function;
   stopped: boolean;
 
-  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, batchCallback: ?Function, maxResults: number = 1) {
+  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, batchDelayMS: number = 0, batchSize: number = 1) {
     this.pubsubClient = pubsub(queueConfig);
     const topic = this.pubsubClient.topic(subscriptionConfig.topic);
     this.subscription = topic.subscription(subscriptionConfig.subscription);
     this.jobHandler = jobHandler;
     this.stopped = false;
-    this.batchCallback = batchCallback;
-    this.maxResults = maxResults;
+    this.batchDelayMS = batchDelayMS;
+    this.batchSize = batchSize;
   }
 
   _acknowledge(ackId: string) {
@@ -33,7 +34,7 @@ export class JobQueueWorker {
     this.subscription.ack(ackId);
   }
 
-  _processNextMessages(maxResults=this.maxResults): Promise<*> {
+  _processNextMessages(maxResults=this.batchSize): Promise<*> {
     const self = this;
     const opts = {
       maxResults,
@@ -65,12 +66,14 @@ export class JobQueueWorker {
         });
       }));
     }).then((): Promise<*> => {
-      if(!isUndefined(this.batchCallback)) {
-        this.batchCallback()
-      }
 
       if (self.stopped) {
         return Promise.reject('Worker has been stopped');
+      }
+
+      //sleep will actually throw if you tell it to sleep for 0.
+      if (this.batchDelayMS > 0) {
+        msleep(this.batchDelayMS);
       }
 
       return self._processNextMessages(maxResults);
