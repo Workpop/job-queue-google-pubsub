@@ -1,6 +1,7 @@
 // @flow
-import { first, map, partial } from 'lodash';
+import { first, map, partial, isUndefined } from 'lodash';
 import log from './log';
+import { msleep } from 'sleep';
 
 const pubsub = require('@google-cloud/pubsub');
 
@@ -18,12 +19,14 @@ export class JobQueueWorker {
   jobHandler: Function;
   stopped: boolean;
 
-  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function) {
+  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, batchDelayMS: number, batchSize: number) {
     this.pubsubClient = pubsub(queueConfig);
     const topic = this.pubsubClient.topic(subscriptionConfig.topic);
     this.subscription = topic.subscription(subscriptionConfig.subscription);
     this.jobHandler = jobHandler;
     this.stopped = false;
+    this.batchDelayMS = batchDelayMS;
+    this.batchSize = batchSize;
   }
 
   _acknowledge(ackId: string) {
@@ -31,10 +34,10 @@ export class JobQueueWorker {
     this.subscription.ack(ackId);
   }
 
-  _processNextMessages(maxResults: number = 1): Promise<*> {
+  _processNextMessages(): Promise<*> {
     const self = this;
     const opts = {
-      maxResults,
+      maxResults: this.batchSize,
     };
 
     _log('TRACE', 'Polling Job Queue...');
@@ -63,22 +66,34 @@ export class JobQueueWorker {
         });
       }));
     }).then((): Promise<*> => {
+
       if (self.stopped) {
         return Promise.reject('Worker has been stopped');
       }
 
-      return self._processNextMessages(maxResults);
+      //sleep will actually throw if you tell it to sleep for 0.
+      if (this.batchDelayMS > 0) {
+        msleep(this.batchDelayMS);
+      }
+
+      return self._processNextMessages();
     }).catch((err: Error) => {
       _log('ERROR', 'Exiting:', err);
     });
   }
 
   start(): Promise<*> {
+    this.stopped = false;
     return this._processNextMessages();
   }
 
   stop() {
     this.stopped = true;
     _log('WARN', 'Stop worker has been issued');
+  }
+
+  adjustRate(batchDelayMS: number, batchSize: number) {
+    this.batchDelayMS = batchDelayMS;
+    this.batchSize = batchSize;
   }
 }
