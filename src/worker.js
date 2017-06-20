@@ -92,7 +92,7 @@ export class JobQueueWorker {
     _log('WARN', 'Stop worker has been issued');
   }
 
-  adjustRate(batchDelayMS, batchSize) {
+  adjustRate(batchDelayMS: number, batchSize: number) {
     this.batchDelayMS = batchDelayMS;
     this.batchSize = batchSize;
   }
