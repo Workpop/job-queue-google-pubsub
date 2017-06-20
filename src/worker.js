@@ -19,7 +19,7 @@ export class JobQueueWorker {
   jobHandler: Function;
   stopped: boolean;
 
-  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, batchDelayMS: number = 0, batchSize: number = 1) {
+  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, batchDelayMS: number, batchSize: number) {
     this.pubsubClient = pubsub(queueConfig);
     const topic = this.pubsubClient.topic(subscriptionConfig.topic);
     this.subscription = topic.subscription(subscriptionConfig.subscription);
@@ -34,10 +34,10 @@ export class JobQueueWorker {
     this.subscription.ack(ackId);
   }
 
-  _processNextMessages(maxResults=this.batchSize): Promise<*> {
+  _processNextMessages(): Promise<*> {
     const self = this;
     const opts = {
-      maxResults,
+      maxResults: this.batchSize,
     };
 
     _log('TRACE', 'Polling Job Queue...');
@@ -76,7 +76,7 @@ export class JobQueueWorker {
         msleep(this.batchDelayMS);
       }
 
-      return self._processNextMessages(maxResults);
+      return self._processNextMessages();
     }).catch((err: Error) => {
       _log('ERROR', 'Exiting:', err);
     });
@@ -90,5 +90,10 @@ export class JobQueueWorker {
   stop() {
     this.stopped = true;
     _log('WARN', 'Stop worker has been issued');
+  }
+
+  adjustRate(batchDelayMS, batchSize) {
+    this.batchDelayMS = batchDelayMS;
+    this.batchSize = batchSize;
   }
 }
