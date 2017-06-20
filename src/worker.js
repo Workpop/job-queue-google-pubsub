@@ -80,6 +80,7 @@ export class JobQueueWorker {
   }
 
   start(): Promise<*> {
+    this.stopped = false;
     return this._processNextMessages();
   }
 
