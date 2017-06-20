@@ -1,5 +1,5 @@
 // @flow
-import { first, map, partial } from 'lodash';
+import { first, map, partial, isUndefined } from 'lodash';
 import log from './log';
 
 const pubsub = require('@google-cloud/pubsub');
@@ -18,12 +18,14 @@ export class JobQueueWorker {
   jobHandler: Function;
   stopped: boolean;
 
-  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function) {
+  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, batchCallback: ?Function, maxResults: number = 1) {
     this.pubsubClient = pubsub(queueConfig);
     const topic = this.pubsubClient.topic(subscriptionConfig.topic);
     this.subscription = topic.subscription(subscriptionConfig.subscription);
     this.jobHandler = jobHandler;
     this.stopped = false;
+    this.batchCallback = batchCallback;
+    this.maxResults = maxResults;
   }
 
   _acknowledge(ackId: string) {
@@ -31,7 +33,7 @@ export class JobQueueWorker {
     this.subscription.ack(ackId);
   }
 
-  _processNextMessages(maxResults: number = 1): Promise<*> {
+  _processNextMessages(maxResults=this.maxResults): Promise<*> {
     const self = this;
     const opts = {
       maxResults,
@@ -63,6 +65,10 @@ export class JobQueueWorker {
         });
       }));
     }).then((): Promise<*> => {
+      if(!isUndefined(this.batchCallback)) {
+        this.batchCallback()
+      }
+
       if (self.stopped) {
         return Promise.reject('Worker has been stopped');
       }
