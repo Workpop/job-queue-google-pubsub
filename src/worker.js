@@ -1,7 +1,6 @@
 // @flow
 import { first, map, partial, isFunction, get } from 'lodash';
 import log from './log';
-import { msleep } from 'sleep';
 
 const pubsub = require('@google-cloud/pubsub');
 
@@ -74,14 +73,14 @@ export class JobQueueWorker {
 
       if (isFunction(this.delayCallback)) {
         const newConfig = this.delayCallback();
-        this.delayTimeMS = get(newConfig, 'delayTimeMS', this.delayTimeMS);
-        this.batchSize = get(newConfig, 'batchSize', this.batchSize);
+        self.delayTimeMS = get(newConfig, 'delayTimeMS', self.delayTimeMS);
+        self.batchSize = get(newConfig, 'batchSize', self.batchSize);
       }
 
       return new Promise((resolve, reject) => {
         setTimeout(function () {
           resolve(self._processNextMessages());
-        }, this.delayTimeMS);
+        }, self.delayTimeMS);
       });
     }).catch((err: Error) => {
       _log('ERROR', 'Exiting:', err);
