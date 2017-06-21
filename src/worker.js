@@ -1,5 +1,5 @@
 // @flow
-import { first, map, partial, isUndefined } from 'lodash';
+import { first, map, partial, isFunction, get } from 'lodash';
 import log from './log';
 import { msleep } from 'sleep';
 
@@ -19,14 +19,15 @@ export class JobQueueWorker {
   jobHandler: Function;
   stopped: boolean;
 
-  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, batchDelayMS: number, batchSize: number) {
+  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, delayTimeMS: number, batchSize: number, delayCallback: ?Function) {
     this.pubsubClient = pubsub(queueConfig);
     const topic = this.pubsubClient.topic(subscriptionConfig.topic);
     this.subscription = topic.subscription(subscriptionConfig.subscription);
     this.jobHandler = jobHandler;
     this.stopped = false;
-    this.batchDelayMS = batchDelayMS;
+    this.delayCallback = delayCallback;
     this.batchSize = batchSize;
+    this.delayTimeMS = delayTimeMS;
   }
 
   _acknowledge(ackId: string) {
@@ -71,12 +72,17 @@ export class JobQueueWorker {
         return Promise.reject('Worker has been stopped');
       }
 
-      //sleep will actually throw if you tell it to sleep for 0.
-      if (this.batchDelayMS > 0) {
-        msleep(this.batchDelayMS);
+      if (isFunction(this.delayCallback)) {
+        const newConfig = this.delayCallback();
+        this.delayTimeMS = get(newConfig, 'delayTimeMS', this.delayTimeMS);
+        this.batchSize = get(newConfig, 'batchSize', this.batchSize);
       }
 
-      return self._processNextMessages();
+      return new Promise((resolve, reject) => {
+        setTimeout(function () {
+          resolve(self._processNextMessages());
+        }, this.delayTimeMS);
+      });
     }).catch((err: Error) => {
       _log('ERROR', 'Exiting:', err);
     });
