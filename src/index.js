@@ -11,8 +11,8 @@ JobQueue.prototype.createPublisher = function createPublisher(): Object {
   return new JobQueuePublisher(this.config);
 };
 
-JobQueue.prototype.createWorker = function createWorker(workerConfig: Object, jobHandler: Function, batchDelayMS: number = 0, batchSize: number = 1, configCallback: ?Function): Object {
-  return new JobQueueWorker(this.config, workerConfig, jobHandler, batchDelayMS, batchSize, configCallback);
+JobQueue.prototype.createWorker = function createWorker(workerConfig: Object, jobHandler: Function, configCallback: ?Function): Object {
+  return new JobQueueWorker(this.config, workerConfig, jobHandler, configCallback);
 };
 
 export {

@@ -30,7 +30,7 @@ const worker1 = q.createWorker(workerConfig, function(message) {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
     }, timeToProcessJobMS);
   });
-}, delayTimeMS, batchSize, function() {
+}, function() {
     return {
       delayTimeMS,
       batchSize,
@@ -47,7 +47,12 @@ const worker2 = q.createWorker(workerConfig, function(message) {
       resolve({status: JobProcessedStatus.ok, message: 'failure'});
     }, timeToProcessJobMS);
   });
-}, delayTimeMS, batchSize);
+}, function () {
+  return {
+    batchSize: 1,
+    delayTimeMS: 1000,
+  }
+});
 
 function publishMessage() {
   const messageContent = {
