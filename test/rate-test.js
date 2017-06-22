@@ -1,6 +1,7 @@
 import { JobQueue, JobProcessedStatus } from '../src/index';
 import { queueConfig, workerConfig, topic } from './test-config';
 import { repeat } from 'lodash';
+import assert from 'assert';
 
 const q = new JobQueue(queueConfig);
 
@@ -96,6 +97,7 @@ function endMessage() {
     const worker2progress = repeat(worker2token, worker2Messages);
     console.log(`Worker1 ${worker1Messages} ${worker1progress}${worker2progress} ${worker2Messages} Worker2`);
     console.log(`Handled ${worker1Messages + worker2Messages}/${messagesToPublish} messages`);
+    assert.ok(worker1Messages + worker2Messages === messagesToPublish);
     return;
   }
   setTimeout(endMessage, 1000);

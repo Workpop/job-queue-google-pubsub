@@ -6,6 +6,8 @@ const pubsub = require('@google-cloud/pubsub');
 
 const _log = partial(log, 'JOB-WORKER');
 
+type processingRateConfigUpdateCallbackType = ?() => {delayTimeMS: Number, batchSize: Number};
+
 export const JobProcessedStatus = {
   failed: -1,
   failedRetryRequested: 0,
@@ -18,13 +20,13 @@ export class JobQueueWorker {
   jobHandler: Function;
   stopped: boolean;
 
-  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, delayTimeMS: number, batchSize: number, delayCallback: ?Function) {
+  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, delayTimeMS: number = 0, batchSize: number = 1, processingRateConfigUpdateCallback: processingRateConfigUpdateCallbackType) {
     this.pubsubClient = pubsub(queueConfig);
     const topic = this.pubsubClient.topic(subscriptionConfig.topic);
     this.subscription = topic.subscription(subscriptionConfig.subscription);
     this.jobHandler = jobHandler;
     this.stopped = false;
-    this.delayCallback = delayCallback;
+    this.processingRateConfigUpdateCallback = processingRateConfigUpdateCallback;
     this.batchSize = batchSize;
     this.delayTimeMS = delayTimeMS;
   }
@@ -71,8 +73,8 @@ export class JobQueueWorker {
         return Promise.reject('Worker has been stopped');
       }
 
-      if (isFunction(this.delayCallback)) {
-        const newConfig = this.delayCallback();
+      if (isFunction(this.processingRateConfigUpdateCallback)) {
+        const newConfig = this.processingRateConfigUpdateCallback();
         self.delayTimeMS = get(newConfig, 'delayTimeMS', self.delayTimeMS);
         self.batchSize = get(newConfig, 'batchSize', self.batchSize);
       }
