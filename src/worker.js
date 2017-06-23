@@ -1,11 +1,12 @@
 // @flow
-import { first, map, partial, isUndefined } from 'lodash';
+import { first, map, partial, isFunction, get } from 'lodash';
 import log from './log';
-import { msleep } from 'sleep';
 
 const pubsub = require('@google-cloud/pubsub');
 
 const _log = partial(log, 'JOB-WORKER');
+
+type processingRateConfigUpdateCallbackType = ?() => {delayTimeMS: Number, batchSize: Number};
 
 export const JobProcessedStatus = {
   failed: -1,
@@ -18,15 +19,16 @@ export class JobQueueWorker {
   subscription: Object;
   jobHandler: Function;
   stopped: boolean;
+  batchSize: Number;
+  delayTimeMS: Number;
 
-  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, batchDelayMS: number, batchSize: number) {
+  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, processingRateConfigUpdateCallback: processingRateConfigUpdateCallbackType) {
     this.pubsubClient = pubsub(queueConfig);
     const topic = this.pubsubClient.topic(subscriptionConfig.topic);
     this.subscription = topic.subscription(subscriptionConfig.subscription);
     this.jobHandler = jobHandler;
     this.stopped = false;
-    this.batchDelayMS = batchDelayMS;
-    this.batchSize = batchSize;
+    this.processingRateConfigUpdateCallback = processingRateConfigUpdateCallback;
   }
 
   _acknowledge(ackId: string) {
@@ -34,8 +36,19 @@ export class JobQueueWorker {
     this.subscription.ack(ackId);
   }
 
+  _updateProcessingRateConfig() {
+    this.batchSize = 1;
+    this.delayTimeMS = 0;
+    if (isFunction(this.processingRateConfigUpdateCallback)) {
+      const newConfig = this.processingRateConfigUpdateCallback();
+      this.delayTimeMS = get(newConfig, 'delayTimeMS', this.delayTimeMS);
+      this.batchSize = get(newConfig, 'batchSize', this.batchSize);
+    }
+  }
+
   _processNextMessages(): Promise<*> {
     const self = this;
+    this._updateProcessingRateConfig();
     const opts = {
       maxResults: this.batchSize,
     };
@@ -71,12 +84,11 @@ export class JobQueueWorker {
         return Promise.reject('Worker has been stopped');
       }
 
-      //sleep will actually throw if you tell it to sleep for 0.
-      if (this.batchDelayMS > 0) {
-        msleep(this.batchDelayMS);
-      }
-
-      return self._processNextMessages();
+      return new Promise((resolve, reject) => {
+        setTimeout(function () {
+          resolve(self._processNextMessages());
+        }, self.delayTimeMS);
+      });
     }).catch((err: Error) => {
       _log('ERROR', 'Exiting:', err);
     });

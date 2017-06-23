@@ -8,6 +8,7 @@
     "lint": "eslint ./src",
     "flow": "flow check",
     "test": "babel-node test/test.js",
+    "ratetest": "babel-node test/rate-test.js",
     "release": "standard-version"
   },
   "keywords": [
@@ -20,8 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/pubsub": "^0.8.0",
-    "lodash": "^4.17.4",
-    "sleep": "^5.1.1"
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
     "@workpop/eslint-config-workpop": "0.0.7",
