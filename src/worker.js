@@ -1,5 +1,5 @@
 // @flow
-import { first, map, partial, isFunction, get } from 'lodash';
+import { first, map, partial, isFunction, get, last } from 'lodash';
 import log from './log';
 
 const pubsub = require('@google-cloud/pubsub');
@@ -29,12 +29,13 @@ export class JobQueueWorker {
     this.jobHandler = jobHandler;
     this.stopped = false;
     this.processingRateConfigUpdateCallback = processingRateConfigUpdateCallback;
-    this.subscriptionName = subscriptionConfig.subscription;
-    this.topicName = subscriptionConfig.topic;
+    this._projectId = queueConfig.projectId;
+    this._subscriptionName = last(subscriptionConfig.subscription.split('/'));
+    this._topicName = last(subscriptionConfig.topic.split('/'));
   }
 
   _workerLog(level:string, ...rest ) {
-    const logMessage = `${this.topicName}:${this.subscriptionName}`;
+    const logMessage = `${this._projectId} :: ${this._topicName} :: ${this._subscriptionName}`;
     _log(level, logMessage, ...rest);
   }
 
