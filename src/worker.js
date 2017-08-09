@@ -1,5 +1,5 @@
 // @flow
-import { first, map, partial, isFunction, get } from 'lodash';
+import { first, map, partial, isFunction, get, last } from 'lodash';
 import log from './log';
 
 const pubsub = require('@google-cloud/pubsub');
@@ -29,10 +29,18 @@ export class JobQueueWorker {
     this.jobHandler = jobHandler;
     this.stopped = false;
     this.processingRateConfigUpdateCallback = processingRateConfigUpdateCallback;
+    this._projectId = queueConfig.projectId;
+    this._subscriptionName = last(subscriptionConfig.subscription.split('/'));
+    this._topicName = last(subscriptionConfig.topic.split('/'));
+  }
+
+  _workerLog(level:string, ...rest ) {
+    const logMessage = `${this._projectId} :: ${this._topicName} :: ${this._subscriptionName}`;
+    _log(level, logMessage, ...rest);
   }
 
   _acknowledge(ackId: string) {
-    _log('TRACE', 'ack', ackId);
+    this._workerLog('TRACE', 'ack', ackId);
     this.subscription.ack(ackId);
   }
 
@@ -53,7 +61,7 @@ export class JobQueueWorker {
       maxResults: this.batchSize,
     };
 
-    _log('TRACE', 'Polling Job Queue...');
+    this._workerLog('TRACE', 'Polling Job Queue...');
     return self.subscription.pull(opts)
     .then((data: Array<*>): Promise<*> => {
       const messages = first(data);
@@ -69,7 +77,7 @@ export class JobQueueWorker {
         }).catch((result: Object): Promise<*> => {
           // there was an error processing the job
 
-          _log('ERROR', 'Error Processing Job', result);
+          self._workerLog('ERROR', 'Error Processing Job', result);
           // if we don't want to retry job, then remove from queue
           if (result.status !== JobProcessedStatus.failedRetryRequested) {
             self._acknowledge(ackId);
@@ -90,7 +98,7 @@ export class JobQueueWorker {
         }, self.delayTimeMS);
       });
     }).catch((err: Error) => {
-      _log('ERROR', 'Exiting:', err);
+        this._workerLog('ERROR', 'Exiting:', err);
     });
   }
 
@@ -101,7 +109,7 @@ export class JobQueueWorker {
 
   stop() {
     this.stopped = true;
-    _log('WARN', 'Stop worker has been issued');
+    this._workerLog('WARN', 'Stop worker has been issued');
   }
 
   adjustRate(batchDelayMS: number, batchSize: number) {
