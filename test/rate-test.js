@@ -30,11 +30,11 @@ const worker1 = q.createWorker(workerConfig, function(message) {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
     }, timeToProcessJobMS);
   });
-}, function() {
-    return {
+}, function(cb) {
+    return cb({
       delayTimeMS,
       batchSize,
-    }
+    });
   });
 
 // create the second worker
@@ -47,11 +47,11 @@ const worker2 = q.createWorker(workerConfig, function(message) {
       resolve({status: JobProcessedStatus.ok, message: 'failure'});
     }, timeToProcessJobMS);
   });
-}, function () {
-  return {
+}, function (cb) {
+  return cb({
     batchSize: 1,
     delayTimeMS: 1000,
-  }
+  });
 });
 
 function publishMessage() {
