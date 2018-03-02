@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.3.3"></a>
+## [0.3.3](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.3.2...v0.3.3) (2018-03-02)
+
+
+### Bug Fixes
+
+* **throttle:** bind this to _updateProcessingRateConfig ([f0e6e33](https://github.com/Workpop/job-queue-google-pubsub/commit/f0e6e33))
+
+
+
 <a name="0.3.2"></a>
 ## [0.3.2](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.3.0...v0.3.2) (2017-06-23)
 
