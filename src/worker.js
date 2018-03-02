@@ -29,6 +29,8 @@ export class JobQueueWorker {
     this.jobHandler = jobHandler;
     this.stopped = false;
     this.processingRateConfigUpdateCallback = processingRateConfigUpdateCallback;
+
+    this._updateProcessingRateConfig = this._updateProcessingRateConfig.bind(this);
   }
 
   _acknowledge(ackId: string) {
