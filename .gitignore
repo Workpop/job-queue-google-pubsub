@@ -3,3 +3,4 @@ test/test-creds.json
 node_modules/
 flow-typed/
 .idea/
+.eslintcache

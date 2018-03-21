@@ -74,7 +74,6 @@ export class JobQueueWorker {
         maxResults: this.batchSize,
       };
 
-      _log('TRACE', 'Polling Job Queue...');
       return self.subscription.pull(opts);
     })
     .then((data: Array<*>): Promise<*> => {
