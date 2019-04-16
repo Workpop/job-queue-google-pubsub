@@ -15,10 +15,10 @@ const timeToProcessJobMS = 1500;
 let messageCount = 0;
 let messagesHandled = 0;
 let batchSize = 1;
-let delayTimeMS = 1000;
+const delayTimeMS = 1000;
 
 // create the first worker
-const worker1 = q.createWorker(workerConfig, function(message) {
+const worker1 = q.createWorker(workerConfig, function (message) {
   worker1Messages += 1;
   messagesHandled += 1;
   console.log(`>>worker1 handling message #${worker1Messages}`);
@@ -26,24 +26,24 @@ const worker1 = q.createWorker(workerConfig, function(message) {
     batchSize = 10;
   }
   return new Promise((resolve) => {
-    setTimeout(function() {
+    setTimeout(function () {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
     }, timeToProcessJobMS);
   });
-}, function(cb) {
-    return cb({
-      delayTimeMS,
-      batchSize,
-    });
+}, function (cb) {
+  return cb({
+    delayTimeMS,
+    batchSize,
   });
+});
 
 // create the second worker
-const worker2 = q.createWorker(workerConfig, function(message) {
+const worker2 = q.createWorker(workerConfig, function (message) {
   worker2Messages += 1;
   messagesHandled += 1;
   console.log(`>>worker2 handling message #${worker2Messages}`);
   return new Promise((resolve, reject) => {
-    setTimeout(function() {
+    setTimeout(function () {
       resolve({status: JobProcessedStatus.ok, message: 'failure'});
     }, timeToProcessJobMS);
   });
@@ -66,17 +66,17 @@ function publishMessage() {
           resolve();
         }, 10);
       });
-    } else {
-      console.log(`Published messages: ${messageCount}`);
-      console.log('Starting Workers');
-      worker1.start().then((result) => {
-        console.log('Worker 1 completed');
-      });
-
-      worker2.start().then((result) => {
-        console.log('Worker 2 completed');
-      });
     }
+    console.log(`Published messages: ${messageCount}`);
+    console.log('Starting Workers');
+    worker1.start().then((result) => {
+      console.log('Worker 1 completed');
+    });
+
+    worker2.start().then((result) => {
+      console.log('Worker 2 completed');
+    });
+
   }).catch((err) => {
     console.log('Error:', err);
   });
@@ -86,11 +86,11 @@ function publishMessage() {
 // start publishing messages
 publishMessage();
 
-setTimeout(function() {
+setTimeout(function () {
   worker1.stop();
 }, 600000);
 
-setTimeout(function() {
+setTimeout(function () {
   worker2.stop();
 }, 600000);
 

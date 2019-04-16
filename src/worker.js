@@ -1,4 +1,3 @@
-// @flow
 import { first, map, partial, isFunction, get } from 'lodash';
 import log from './log';
 
@@ -6,7 +5,6 @@ const pubsub = require('@google-cloud/pubsub');
 
 const _log = partial(log, 'JOB-WORKER');
 
-type ProcessingRateConfigUpdateCallbackType = ?() => {delayTimeMS: Number, batchSize: Number};
 
 export const JobProcessedStatus = {
   failed: -1,
@@ -15,14 +13,9 @@ export const JobProcessedStatus = {
 };
 
 export class JobQueueWorker {
-  pubsubClient: Object;
-  subscription: Object;
-  jobHandler: Function;
-  stopped: boolean;
-  batchSize: Number;
-  delayTimeMS: Number;
 
-  constructor(queueConfig: Object = {}, subscriptionConfig: Object = {}, jobHandler: Function, processingRateConfigUpdateCallback: ProcessingRateConfigUpdateCallbackType) {
+
+  constructor(queueConfig         = {}, subscriptionConfig         = {}, jobHandler, processingRateConfigUpdateCallback                                        ) {
     this.pubsubClient = pubsub(queueConfig);
     const topic = this.pubsubClient.topic(subscriptionConfig.topic);
     this.subscription = topic.subscription(subscriptionConfig.subscription);
@@ -33,12 +26,12 @@ export class JobQueueWorker {
     this._updateProcessingRateConfig = this._updateProcessingRateConfig.bind(this);
   }
 
-  _acknowledge(ackId: string) {
+  _acknowledge(ackId        ) {
     _log('TRACE', 'ack', ackId);
     this.subscription.ack(ackId);
   }
 
-  _updateProcessingRateConfig(): Promise {
+  _updateProcessingRateConfig()          {
     this.batchSize = 1;
     this.delayTimeMS = 0;
 
@@ -46,12 +39,12 @@ export class JobQueueWorker {
 
     if (isFunction(this.processingRateConfigUpdateCallback)) {
 
-      const configUpdatePromise = new Promise((resolve: Function) => {
+      const configUpdatePromise = new Promise((resolve          ) => {
         self.processingRateConfigUpdateCallback(resolve);
-      }).then((newConfig: {delayTimeMs: Number, batchSize: Number}) => {
+      }).then((newConfig                                          ) => {
         self.delayTimeMS = get(newConfig, 'delayTimeMS', self.delayTimeMS);
         self.batchSize = get(newConfig, 'batchSize', self.batchSize);
-      }).catch((e: any): Promise => {
+      }).catch((e     )          => {
         _log('ERROR', 'Unexpected error from processingRateConfigUpdateCallback, continuing.', e);
         return Promise.resolve();
       });
@@ -65,29 +58,29 @@ export class JobQueueWorker {
     return Promise.resolve();
   }
 
-  _processNextMessages(): Promise<*> {
+  _processNextMessages()             {
     const self = this;
 
     return this._updateProcessingRateConfig()
-    .then((): Promise<Array<*>> => {
+    .then(()                    => {
       const opts = {
         maxResults: this.batchSize,
       };
 
       return self.subscription.pull(opts);
     })
-    .then((data: Array<*>): Promise<*> => {
+    .then((data          )             => {
       const messages = first(data);
-      return Promise.all(map(messages, (message: Object): Promise<*> => {
+      return Promise.all(map(messages, (message        )             => {
         const ackId = message.ackId;
         const messageContent = message.data;
         // process the job
-        return self.jobHandler(messageContent).then((result: Object): Promise<*> => {
+        return self.jobHandler(messageContent).then((result        )             => {
           // handled job successfully
 
           self._acknowledge(ackId);
           return Promise.resolve(result);
-        }).catch((result: Object): Promise<*> => {
+        }).catch((result        )             => {
           // there was an error processing the job
 
           _log('ERROR', 'Error Processing Job', result);
@@ -99,24 +92,24 @@ export class JobQueueWorker {
           return Promise.resolve(result);
         });
       }));
-    }).then((): Promise<*> => {
+    }).then(()             => {
 
       if (self.stopped) {
         return Promise.reject('Worker has been stopped');
       }
 
-      return new Promise((resolve: Function) => {
+      return new Promise((resolve          ) => {
         setTimeout(function () {
           resolve(self._processNextMessages());
         }, self.delayTimeMS);
       });
     })
-    .catch((err: Error) => {
+    .catch((err       ) => {
       _log('ERROR', 'Exiting:', err);
     });
   }
 
-  start(): Promise<*> {
+  start()             {
     this.stopped = false;
     return this._processNextMessages();
   }
@@ -126,7 +119,7 @@ export class JobQueueWorker {
     _log('WARN', 'Stop worker has been issued');
   }
 
-  adjustRate(batchDelayMS: number, batchSize: number) {
+  adjustRate(batchDelayMS, batchSize        ) {
     this.batchDelayMS = batchDelayMS;
     this.batchSize = batchSize;
   }

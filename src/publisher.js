@@ -1,19 +1,17 @@
-// @flow
-
 const pubsub = require('@google-cloud/pubsub');
 
 class JobQueuePublisher {
-  pubsubClient: Object;
 
-  constructor(queueConfig: Object = {}) {
+
+  constructor(queueConfig         = {}) {
     this.pubsubClient = pubsub(queueConfig);
   }
 
-  publish(topicId: string, message: string): Promise<*> {
+  publish(topicId, message        )             {
     const self = this;
-    return new Promise((resolve: Function, reject: Function) => {
+    return new Promise((resolve, reject          ) => {
       const topic = self.pubsubClient.topic(topicId);
-      topic.publish(message, (err: Error, result: any): any => {
+      topic.publish(message, (err, result     )      => {
         if (err) {
           return reject(err);
         }
