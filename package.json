@@ -7,6 +7,7 @@
     "build": "babel ./src --ignore test --out-dir ./lib",
     "lint": "eslint ./src",
     "flow": "flow check",
+    "flow:deps": "flow-typed install",
     "test": "babel-node test/test.js",
     "ratetest": "babel-node test/rate-test.js",
     "release": "standard-version"
@@ -34,6 +35,7 @@
     "babel-preset-stage-2": "^6.22.0",
     "eslint": "^3.16.1",
     "flow-bin": "^0.40.0",
+    "flow-typed": "^2.5.1",
     "standard-version": "^4.0.0"
   }
 }
