@@ -4,7 +4,6 @@
     "es2015"
   ],
   "plugins": [
-    "transform-flow-strip-types",
     "transform-object-assign",
     "transform-object-rest-spread",
     "transform-export-extensions"
