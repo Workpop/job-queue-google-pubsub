@@ -1,25 +1,26 @@
-const pubsub = require('@google-cloud/pubsub');
+import { isString, isObject } from 'lodash';
+import { PubSub } from '@google-cloud/pubsub';
+import { ClientConfig } from '@google-cloud/pubsub/build/src/pubsub';
 
-class JobQueuePublisher {
+export class JobQueuePublisher {
 
-
-  constructor(queueConfig         = {}) {
-    this.pubsubClient = pubsub(queueConfig);
+  /**
+   * @param {ClientConfig} queueConfig
+   */
+  constructor(queueConfig) {
+    this.pubsubClient = new PubSub(queueConfig);
   }
 
-  publish(topicId, message        )             {
-    const self = this;
-    return new Promise((resolve, reject          ) => {
-      const topic = self.pubsubClient.topic(topicId);
-      topic.publish(message, (err, result     )      => {
-        if (err) {
-          return reject(err);
-        }
-
-        return resolve(result);
-      });
-    });
+  /**
+   * @param {string} topicId
+   * @param {any} message
+   */
+  publish(topicId, message) {
+      const topic = this.pubsubClient.topic(topicId);
+      return topic.publish(
+        Buffer.from(
+          !isString(message) && isObject(message) 
+            ? JSON.stringify(message) 
+            : message));
   }
 }
-
-export default JobQueuePublisher;

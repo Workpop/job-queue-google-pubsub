@@ -1,8 +1,8 @@
 import { JobQueue, JobProcessedStatus } from '../src/index';
 import { queueConfig, workerConfig, topic } from './test-config';
 
-const messagesToPublish = 100;
-const delayBetweenPublishes = 3000;
+const messagesToPublish = 50;
+const delayBetweenPublishes = 700;
 const timeToProcessJob = 1000;
 
 const q = new JobQueue(queueConfig);
@@ -15,7 +15,7 @@ function publishMessage() {
     messageCount,
   };
   publisher.publish(topic, messageContent).then(() => {
-    console.log(`Published message: ${messageContent}`);
+    console.log('Published message:', messageContent);
     if (++messageCount < messagesToPublish) {
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -31,7 +31,7 @@ function publishMessage() {
 
 // create the first worker
 const worker1 = q.createWorker(workerConfig, function (message) {
-  console.log('>>worker1 handling message', message);
+  console.log('<<< worker1 handling message', message, '>>>');
   return new Promise((resolve) => {
     setTimeout(function () {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
@@ -41,7 +41,7 @@ const worker1 = q.createWorker(workerConfig, function (message) {
 
 // create the second worker
 const worker2 = q.createWorker(workerConfig, function (message) {
-  console.log('>>worker2 handling message', message, message.messageCount);
+  console.log('>>> worker2 handling message', message, '<<<');
   return new Promise((resolve) => {
     setTimeout(function () {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
@@ -50,12 +50,12 @@ const worker2 = q.createWorker(workerConfig, function (message) {
 });
 
 // start worker 1
-worker1.start().then((result) => {
+worker1.start().then(() => {
   console.log('completed');
 });
 
 // start worker 2
-worker2.start().then((result) => {
+worker2.start().then(() => {
   console.log('completed');
 });
 
@@ -64,7 +64,7 @@ publishMessage();
 
 setTimeout(function () {
   worker1.stop();
-}, 600000);
+}, 60000);
 setTimeout(function () {
   worker2.stop();
-}, 600000);
+}, 60000);
