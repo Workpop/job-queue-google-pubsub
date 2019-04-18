@@ -13,7 +13,7 @@ class JobQueue {
 
   createPublisher() {
     return new JobQueuePublisher(this.config);
-  };
+  }
 
   /**
    * @param { {topic: string, subscription: string, batchSize?: number} } workerConfig
@@ -22,10 +22,10 @@ class JobQueue {
    */
   createWorker(workerConfig, jobHandler, configCallback) {
     if (configCallback === null || configCallback === undefined) {
-      return new AsyncWorker(this.config, workerConfig, jobHandler);      
+      return new AsyncWorker(this.config, workerConfig, jobHandler);
     }
     return new SyncWorker(this.config, workerConfig, jobHandler, configCallback);
-  };
+  }
 }
 
 export {

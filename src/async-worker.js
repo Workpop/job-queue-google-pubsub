@@ -1,12 +1,15 @@
 import { partial } from 'lodash';
-import { log as logger } from './log';
+// eslint-disable-next-line no-unused-vars
 import { PubSub, Subscription, Message } from '@google-cloud/pubsub';
+// eslint-disable-next-line no-unused-vars
 import { ClientConfig } from '@google-cloud/pubsub/build/src/pubsub';
+import { log as logger } from './log';
 import { JobProcessedStatus } from './status';
 
 /** @type {Function} */
 const log = partial(logger, 'JOB-WORKER');
 
+// eslint-disable-next-line import/prefer-default-export
 export class AsyncWorker {
   /** @type { PubSub } */
   _pubsubClient;
@@ -22,9 +25,9 @@ export class AsyncWorker {
   _batchSize;
   /** @type { (message: Message) => void } */
   _listener;
-  /** 
+  /**
    * @summary Deadline to acknoledge message in seconds
-   *          before it is re-delivered to another subscriber 
+   *          before it is re-delivered to another subscriber
    **/
   _ackDeadline = 30;
 
@@ -42,7 +45,7 @@ export class AsyncWorker {
       flowControl: {
         maxMessages: this._batchSize,
         allowExcessMessages: false,
-      }
+      },
     });
     this._jobHandler = jobHandler;
     this._stopped = true;
@@ -51,9 +54,8 @@ export class AsyncWorker {
   start() {
     this._stopped = false;
     // add listener to the message event
-    if (this._startPromise === undefined)
-    {
-      this._listener = (message) => this._processNextMessage(message);
+    if (this._startPromise === undefined) {
+      this._listener = (message) => { return this._processNextMessage(message); };
       this._subscription.on('message', this._listener);
       this._startPromise = new Promise((resolve) => {
         this._workerResolve = resolve;
@@ -80,16 +82,16 @@ export class AsyncWorker {
   /**
    * @param {Message} message
    */
-  _ack(message) {
+  static _ack(message) {
     log('TRACE', 'ack', message.ackId);
     message.ack();
   }
-  
+
   /**
    * @param {Message} message
    */
-  _nack(message) {
-    log('TRACE', 'nack', message.ackId)
+  static _nack(message) {
+    log('TRACE', 'nack', message.ackId);
     message.nack();
   }
 
@@ -100,23 +102,22 @@ export class AsyncWorker {
     // parse the message data if json
     let contents = message.data.toString();
     if (contents.length > 0 &&
-      (contents[0] === "{" || contents[0] === '[' || contents[0] === '"')) {
+      (contents[0] === '{' || contents[0] === '[' || contents[0] === '"')) {
       contents = JSON.parse(contents);
     }
     // process the job
     this._jobHandler(contents).then(() => {
       // handled job successfully
-      this._ack(message);
+      AsyncWorker._ack(message);
     }).catch((result) => {
       // there was an error processing the job
 
       log('ERROR', 'Error Processing Job', result);
       // if we don't want to retry job, then remove from queue
       if (result.status !== JobProcessedStatus.failedRetryRequested) {
-        this._ack(message);
-      }
-      else { 
-        this._nack(message);
+        AsyncWorker._ack(message);
+      } else {
+        AsyncWorker._nack(message);
       }
     });
   }

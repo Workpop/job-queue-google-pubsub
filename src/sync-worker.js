@@ -1,16 +1,19 @@
 import { get, first, isFunction, map, partial } from 'lodash';
-import { log as logger } from './log';
+// eslint-disable-next-line no-unused-vars
 import { ClientConfig } from '@google-cloud/pubsub/build/src/pubsub';
+import { log as logger } from './log';
 import { JobProcessedStatus } from './status';
+
 const pubsub = require('@google-cloud/pubsub');
 
 /** @type {Function} */
 const _log = partial(logger, 'JOB-WORKER');
 
+// eslint-disable-next-line import/prefer-default-export
 export class SyncWorker {
-  /** 
+  /**
    * @summary Deadline to acknoledge message in seconds
-   *          before it is re-delivered to another subscriber 
+   *          before it is re-delivered to another subscriber
    **/
   _ackDeadline = 30;
 
@@ -39,7 +42,7 @@ export class SyncWorker {
     _log('TRACE', 'ack', ackId);
     const ackRequest = {
       subscription: this._subscription,
-      ackIds: [ackId]
+      ackIds: [ackId],
     };
     //..acknowledges the message.
     this._client.acknowledge(ackRequest).catch((reason) => {
@@ -65,13 +68,11 @@ export class SyncWorker {
   _processNextMessages() {
     const reschedule = () => {
       if (this._stopped) {
-        if (this._workerResolve !== undefined)
-        {
+        if (this._workerResolve !== undefined) {
           this._workerResolve('Worker has been stopped');
         }
-      }
-      else {
-        setTimeout(() => this._processNextMessages(), this._delayTimeMS);
+      } else {
+        setTimeout(() => { return this._processNextMessages(); }, this._delayTimeMS);
       }
     };
 
@@ -80,14 +81,16 @@ export class SyncWorker {
         const request = {
           subscription: this._subscription,
           maxMessages: this._batchSize,
-          returnImmediately: false
+          returnImmediately: false,
         };
         return this._client.pull(request);
       })
       .then((data) => {
         const response = first(data);
         return Promise.all(
-          map(response.receivedMessages, (message) => this._processMessage(message)));
+          map(response.receivedMessages, (message) => {
+            return this._processMessage(message);
+          }));
       })
       .then(reschedule,
       (err) => {
@@ -107,7 +110,7 @@ export class SyncWorker {
     const ackId = message.ackId;
     let contents = message.message.data.toString();
     if (contents.length > 0 &&
-      (contents[0] === "{" || contents[0] === '[' || contents[0] === '"')) {
+      (contents[0] === '{' || contents[0] === '[' || contents[0] === '"')) {
       contents = JSON.parse(contents);
     }
     let completed = false;
@@ -120,22 +123,22 @@ export class SyncWorker {
           ackIds: [ackId],
           ackDeadlineSeconds: this._ackDeadline,
         };
-    
+
         //..reset its ack deadline.
         this._client.modifyAckDeadline(modifyAckRequest)
           .catch((reason) => {
             _log('ERROR', 'modifyAck', reason);
           });
-    
+
         _log('TRACE',
           `Reset ack deadline for "${message.message.messageId}" for ${this._ackDeadline}s.`
         );
         // Re-schedule this every 10 seconds until processing the message completes
-        setTimeout(() => extendAckDeadline(), 10000);
+        setTimeout(() => { return extendAckDeadline(); }, 10000);
       }
-    }
+    };
     // Schedule the extendAckDeadline helper
-    setTimeout(() => extendAckDeadline(), 10000);
+    setTimeout(() => { return extendAckDeadline(); }, 10000);
 
     // process the job
     return this._jobHandler(contents).then(
@@ -164,7 +167,7 @@ export class SyncWorker {
     this._processNextMessages();
     return new Promise((resolve) => {
       this._workerResolve = resolve;
-    })
+    });
   }
 
   stop() {
