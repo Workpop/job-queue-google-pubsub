@@ -2,5 +2,8 @@
   "extends": [
     "@workpop/eslint-config-workpop",
     "plugin:import/errors"
-  ]
+  ],
+  "rules": {
+    "import/prefer-default-export": 0
+  }
 }

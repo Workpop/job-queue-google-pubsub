@@ -7,9 +7,8 @@ import { JobProcessedStatus } from './status';
 const pubsub = require('@google-cloud/pubsub');
 
 /** @type {Function} */
-const _log = partial(logger, 'JOB-WORKER');
+const log = partial(logger, 'JOB-WORKER');
 
-// eslint-disable-next-line import/prefer-default-export
 export class SyncWorker {
   /**
    * @summary Deadline to acknoledge message in seconds
@@ -39,14 +38,14 @@ export class SyncWorker {
    * @param {string} ackId
    */
   _acknowledge(ackId) {
-    _log('TRACE', 'ack', ackId);
+    log('TRACE', 'ack', ackId);
     const ackRequest = {
       subscription: this._subscription,
       ackIds: [ackId],
     };
     //..acknowledges the message.
     this._client.acknowledge(ackRequest).catch((reason) => {
-      _log('ERROR', 'ack', reason);
+      log('ERROR', 'ack', reason);
     });
   }
 
@@ -59,22 +58,13 @@ export class SyncWorker {
         this._batchSize = get(newConfig, 'batchSize', this._batchSize);
       },
       (e) => {
-        _log('ERROR', 'Unexpected error from processingRateConfigUpdateCallback, continuing.', e);
+        log('ERROR', 'Unexpected error from processingRateConfigUpdateCallback, continuing.', e);
       });
     }
     return Promise.resolve();
   }
 
   _processNextMessages() {
-    const reschedule = () => {
-      if (this._stopped) {
-        if (this._workerResolve !== undefined) {
-          this._workerResolve('Worker has been stopped');
-        }
-      } else {
-        setTimeout(() => { return this._processNextMessages(); }, this._delayTimeMS);
-      }
-    };
 
     this._updateProcessingRateConfig()
       .then(() => {
@@ -92,15 +82,25 @@ export class SyncWorker {
             return this._processMessage(message);
           }));
       })
-      .then(reschedule,
+      .then(() => { this.reschedule(); },
       (err) => {
         if (err.code === 4) {
           // timeout waiting for a message
-          reschedule();
+          this.reschedule();
           return;
         }
-        _log('ERROR', 'Exiting:', err);
+        log('ERROR', 'Exiting:', err);
       });
+  }
+
+  reschedule() {
+    if (this._stopped) {
+      if (this._workerResolve !== undefined) {
+        this._workerResolve('Worker has been stopped');
+      }
+    } else {
+      setTimeout(() => { return this._processNextMessages(); }, this._delayTimeMS);
+    }
   }
 
   /**
@@ -127,10 +127,10 @@ export class SyncWorker {
         //..reset its ack deadline.
         this._client.modifyAckDeadline(modifyAckRequest)
           .catch((reason) => {
-            _log('ERROR', 'modifyAck', reason);
+            log('ERROR', 'modifyAck', reason);
           });
 
-        _log('TRACE',
+        log('TRACE',
           `Reset ack deadline for "${message.message.messageId}" for ${this._ackDeadline}s.`
         );
         // Re-schedule this every 10 seconds until processing the message completes
@@ -152,7 +152,7 @@ export class SyncWorker {
         completed = true;
         // there was an error processing the job
 
-        _log('ERROR', 'Error Processing Job', error);
+        log('ERROR', 'Error Processing Job', error);
         // if we don't want to retry job, then remove from queue
         if (error.status !== JobProcessedStatus.failedRetryRequested) {
           this._acknowledge(ackId);
@@ -172,6 +172,6 @@ export class SyncWorker {
 
   stop() {
     this._stopped = true;
-    _log('WARN', 'Stop worker has been issued');
+    log('WARN', 'Stop worker has been issued');
   }
 }

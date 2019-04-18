@@ -9,7 +9,6 @@ import { JobProcessedStatus } from './status';
 /** @type {Function} */
 const log = partial(logger, 'JOB-WORKER');
 
-// eslint-disable-next-line import/prefer-default-export
 export class AsyncWorker {
   /** @type { PubSub } */
   _pubsubClient;

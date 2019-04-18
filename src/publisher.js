@@ -3,7 +3,6 @@ import { PubSub } from '@google-cloud/pubsub';
 // eslint-disable-next-line no-unused-vars
 import { ClientConfig } from '@google-cloud/pubsub/build/src/pubsub';
 
-// eslint-disable-next-line import/prefer-default-export
 export class JobQueuePublisher {
 
   /**
