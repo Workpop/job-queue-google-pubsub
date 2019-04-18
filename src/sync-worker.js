@@ -3,6 +3,7 @@ import { get, first, isFunction, map, partial } from 'lodash';
 import { ClientConfig } from '@google-cloud/pubsub/build/src/pubsub';
 import { log as logger } from './log';
 import { JobProcessedStatus } from './status';
+import { getContent } from './get-content';
 
 const pubsub = require('@google-cloud/pubsub');
 
@@ -104,15 +105,11 @@ export class SyncWorker {
   }
 
   /**
-   * @param {{ ackId: string; message: { messageId: string; data: any; }}} message
+   * @param {{ ackId: string; message: { messageId: string; data: Buffer; attributes: any; }}} message
    */
   _processMessage(message) {
     const ackId = message.ackId;
-    let contents = message.message.data.toString();
-    if (contents.length > 0 &&
-      (contents[0] === '{' || contents[0] === '[' || contents[0] === '"')) {
-      contents = JSON.parse(contents);
-    }
+    const contents = getContent(message.message.data, message.message.attributes);
     let completed = false;
     // make sure to extend the deadline while message is still being processed
     const extendAckDeadline = () => {

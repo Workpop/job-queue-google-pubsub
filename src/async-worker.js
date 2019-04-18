@@ -5,6 +5,7 @@ import { PubSub, Subscription, Message } from '@google-cloud/pubsub';
 import { ClientConfig } from '@google-cloud/pubsub/build/src/pubsub';
 import { log as logger } from './log';
 import { JobProcessedStatus } from './status';
+import { getContent } from './get-content';
 
 /** @type {Function} */
 const log = partial(logger, 'JOB-WORKER');
@@ -82,11 +83,7 @@ export class AsyncWorker {
    */
   _processNextMessage(message) {
     // parse the message data if json
-    let contents = message.data.toString();
-    if (contents.length > 0 &&
-      (contents[0] === '{' || contents[0] === '[' || contents[0] === '"')) {
-      contents = JSON.parse(contents);
-    }
+    const contents = getContent(message.data, message.attributes);
     // process the job
     this._jobHandler(contents).then(() => {
       // handled job successfully
