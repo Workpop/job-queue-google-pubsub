@@ -10,6 +10,12 @@ import { JobProcessedStatus } from './status';
 const log = partial(logger, 'JOB-WORKER');
 
 export class AsyncWorker {
+  /**
+   * @summary Deadline to acknoledge message in seconds
+   *          before it is re-delivered to another subscriber
+   **/
+  static _ackDeadline = 30;
+
   /** @type { PubSub } */
   _pubsubClient;
   /** @type { Subscription } */
@@ -18,17 +24,10 @@ export class AsyncWorker {
   _jobHandler;
   /** @type { boolean } */
   _stopped;
-  /** @type { (arg0: (value?: any) => void) => void } */
-  _processingRateConfigUpdateCallback;
   /** @type { number } */
   _batchSize;
   /** @type { (message: Message) => void } */
   _listener;
-  /**
-   * @summary Deadline to acknoledge message in seconds
-   *          before it is re-delivered to another subscriber
-   **/
-  _ackDeadline = 30;
 
   /**
    * @param { ClientConfig } queueConfig
@@ -40,7 +39,7 @@ export class AsyncWorker {
     this._batchSize = subscriptionConfig.batchSize || 1;
     const topic = this._pubsubClient.topic(subscriptionConfig.topic);
     this._subscription = topic.subscription(subscriptionConfig.subscription, {
-      ackDeadline: this._ackDeadline,
+      ackDeadline: AsyncWorker._ackDeadline,
       flowControl: {
         maxMessages: this._batchSize,
         allowExcessMessages: false,
@@ -81,22 +80,6 @@ export class AsyncWorker {
   /**
    * @param {Message} message
    */
-  static _ack(message) {
-    log('TRACE', 'ack', message.ackId);
-    message.ack();
-  }
-
-  /**
-   * @param {Message} message
-   */
-  static _nack(message) {
-    log('TRACE', 'nack', message.ackId);
-    message.nack();
-  }
-
-  /**
-   * @param {Message} message
-   */
   _processNextMessage(message) {
     // parse the message data if json
     let contents = message.data.toString();
@@ -119,5 +102,21 @@ export class AsyncWorker {
         AsyncWorker._nack(message);
       }
     });
+  }
+
+  /**
+   * @param {Message} message
+   */
+  static _ack(message) {
+    log('TRACE', 'ack', message.ackId);
+    message.ack();
+  }
+
+  /**
+   * @param {Message} message
+   */
+  static _nack(message) {
+    log('TRACE', 'nack', message.ackId);
+    message.nack();
   }
 }
