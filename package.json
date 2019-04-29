@@ -19,7 +19,7 @@
   "author": "Workpop",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/pubsub": "^0.8.0",
+    "@google-cloud/pubsub": "^0.28.1",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
@@ -28,6 +28,7 @@
     "babel-plugin-transform-export-extensions": "^6.22.0",
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-plugin-transform-class-properties": "^6.22.0",
     "babel-preset-es2015": "^6.22.0",
     "babel-preset-stage-2": "^6.22.0",
     "eslint": "^3.16.1",

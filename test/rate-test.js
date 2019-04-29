@@ -21,7 +21,7 @@ const delayTimeMS = 1000;
 const worker1 = q.createWorker(workerConfig, function (message) {
   worker1Messages += 1;
   messagesHandled += 1;
-  console.log(`>>worker1 handling message #${worker1Messages}`);
+  console.log(`>>worker1 handling message #${worker1Messages}`, message);
   if (worker1Messages >= 10) {
     batchSize = 10;
   }
@@ -41,7 +41,7 @@ const worker1 = q.createWorker(workerConfig, function (message) {
 const worker2 = q.createWorker(workerConfig, function (message) {
   worker2Messages += 1;
   messagesHandled += 1;
-  console.log(`>>worker2 handling message #${worker2Messages}`);
+  console.log(`>>worker2 handling message #${worker2Messages}`, message);
   return new Promise((resolve, reject) => {
     setTimeout(function () {
       resolve({status: JobProcessedStatus.ok, message: 'failure'});
@@ -69,11 +69,11 @@ function publishMessage() {
     }
     console.log(`Published messages: ${messageCount}`);
     console.log('Starting Workers');
-    worker1.start().then((result) => {
+    worker1.start().then(() => {
       console.log('Worker 1 completed');
     });
 
-    worker2.start().then((result) => {
+    worker2.start().then(() => {
       console.log('Worker 2 completed');
     });
 
