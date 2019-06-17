@@ -1,6 +1,16 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [0.6.0](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.5.0...v0.6.0) (2019-06-17)
+
+
+### Features
+
+* Build to ES6 for node 8+ ([e85a547](https://github.com/Workpop/job-queue-google-pubsub/commit/e85a547))
+* Update pubsub to v0.29 ([3023157](https://github.com/Workpop/job-queue-google-pubsub/commit/3023157))
+
+
 
 <a name="0.5.0"></a>
 # [0.5.0](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.4.2...v0.5.0) (2019-04-29)
