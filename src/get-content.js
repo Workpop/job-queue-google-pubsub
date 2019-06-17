@@ -6,11 +6,12 @@ export function getContent(data, attributes) {
   // check data is a buffer or a string
   const contents = data instanceof Buffer ? data.toString() : data;
 
-  if (attributes &&
-      attributes['content-type'] === 'application/json') {
+  if (attributes
+    && attributes['content-type'] === 'application/json') {
     return JSON.parse(contents);
-  } else if (contents.length > 0 &&
-      (contents[0] === '{' || contents[0] === '[' || contents[0] === '"')) {
+  }
+  if (contents.length > 0
+    && (contents[0] === '{' || contents[0] === '[' || contents[0] === '"')) {
     // check is required for messages published by old publisher
     return JSON.parse(contents);
   }

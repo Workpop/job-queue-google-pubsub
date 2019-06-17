@@ -1,4 +1,6 @@
-import { get, first, isFunction, map, partial } from 'lodash';
+import {
+  get, first, isFunction, map, partial,
+} from 'lodash';
 // eslint-disable-next-line no-unused-vars
 import { ClientConfig } from '@google-cloud/pubsub/build/src/pubsub';
 import { log as logger } from './log';
@@ -53,7 +55,7 @@ export class SyncWorker {
   _updateProcessingRateConfig() {
     if (isFunction(this._processingRateConfigUpdateCallback)) {
       return new Promise((resolve) => {
-        this._processingRateConfigUpdateCallback(resolve);
+        return this._processingRateConfigUpdateCallback(resolve);
       }).then((newConfig) => {
         this._delayTimeMS = get(newConfig, 'delayTimeMS', this._delayTimeMS);
         this._batchSize = get(newConfig, 'batchSize', this._batchSize);
@@ -81,17 +83,18 @@ export class SyncWorker {
         return Promise.all(
           map(response.receivedMessages, (message) => {
             return this._processMessage(message);
-          }));
+          })
+        );
       })
       .then(() => { this.reschedule(); },
-      (err) => {
-        if (err.code === 4) {
-          // timeout waiting for a message
-          this.reschedule();
-          return;
-        }
-        log('ERROR', 'Exiting:', err);
-      });
+        (err) => {
+          if (err.code === 4) {
+            // timeout waiting for a message
+            this.reschedule();
+            return;
+          }
+          log('ERROR', 'Exiting:', err);
+        });
   }
 
   reschedule() {
@@ -108,7 +111,7 @@ export class SyncWorker {
    * @param {{ ackId: string; message: { messageId: string; data: Buffer; attributes: any; }}} message
    */
   _processMessage(message) {
-    const ackId = message.ackId;
+    const { ackId } = message;
     const contents = getContent(message.message.data, message.message.attributes);
     let completed = false;
     // make sure to extend the deadline while message is still being processed
@@ -128,8 +131,7 @@ export class SyncWorker {
           });
 
         log('TRACE',
-          `Reset ack deadline for "${message.message.messageId}" for ${this._ackDeadline}s.`
-        );
+          `Reset ack deadline for "${message.message.messageId}" for ${this._ackDeadline}s.`);
         // Re-schedule this every 10 seconds until processing the message completes
         setTimeout(() => { return extendAckDeadline(); }, 10000);
       }
@@ -156,7 +158,8 @@ export class SyncWorker {
         }
 
         return Promise.resolve(error);
-      });
+      }
+    );
   }
 
   start() {

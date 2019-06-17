@@ -19,14 +19,19 @@ export class AsyncWorker {
 
   /** @type { PubSub } */
   _pubsubClient;
+
   /** @type { Subscription } */
   _subscription;
+
   /** @type { (arg0: any) => Promise<{ status: number }> } */
   _jobHandler;
+
   /** @type { boolean } */
   _stopped;
+
   /** @type { number } */
   _batchSize;
+
   /** @type { (message: Message) => void } */
   _listener;
 
