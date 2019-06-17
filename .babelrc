@@ -1,12 +1,9 @@
 {
   "presets": [
-    "stage-2",
-    "es2015"
+    "es2016"
   ],
   "plugins": [
-    "transform-object-assign",
-    "transform-object-rest-spread",
-    "transform-export-extensions",
-    "transform-class-properties"
+    "transform-class-properties",
+    "transform-es2015-modules-commonjs"
   ]
 }

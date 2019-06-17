@@ -17,7 +17,7 @@ export class SyncWorker {
    * @summary Deadline to acknoledge message in seconds
    *          before it is re-delivered to another subscriber
    **/
-  _ackDeadline = 30;
+  static _ackDeadline = 30;
 
   /**
     * @param { ClientConfig } queueConfig
@@ -121,7 +121,7 @@ export class SyncWorker {
         const modifyAckRequest = {
           subscription: this._subscription,
           ackIds: [ackId],
-          ackDeadlineSeconds: this._ackDeadline,
+          ackDeadlineSeconds: SyncWorker._ackDeadline,
         };
 
         //..reset its ack deadline.
@@ -131,7 +131,7 @@ export class SyncWorker {
           });
 
         log('TRACE',
-          `Reset ack deadline for "${message.message.messageId}" for ${this._ackDeadline}s.`);
+          `Reset ack deadline for "${message.message.messageId}" for ${SyncWorker._ackDeadline}s.`);
         // Re-schedule this every 10 seconds until processing the message completes
         setTimeout(() => { return extendAckDeadline(); }, 10000);
       }
