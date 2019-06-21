@@ -1,5 +1,6 @@
-import { JobQueue, JobProcessedStatus } from '../src/index';
-import { queueConfig, workerConfig, topic } from './test-config';
+// tslint:disable: no-console
+import { JobProcessedStatus, JobQueue } from '../src/index';
+import { queueConfig, topic, workerConfig } from './test-config';
 
 const messagesToPublish = 50;
 const delayBetweenPublishes = 700;
@@ -30,20 +31,20 @@ function publishMessage() {
 }
 
 // create the first worker
-const worker1 = q.createWorker(workerConfig, function (message) {
+const worker1 = q.createWorker(workerConfig, (message) => {
   console.log('<<< worker1 handling message', message, '>>>');
   return new Promise((resolve) => {
-    setTimeout(function () {
+    setTimeout(() => {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
     }, timeToProcessJob);
   });
 });
 
 // create the second worker
-const worker2 = q.createWorker(workerConfig, function (message) {
+const worker2 = q.createWorker(workerConfig, (message) => {
   console.log('>>> worker2 handling message', message, '<<<');
   return new Promise((resolve) => {
-    setTimeout(function () {
+    setTimeout(() => {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
     }, timeToProcessJob);
   });
@@ -62,9 +63,5 @@ worker2.start().then(() => {
 // start publishing messages
 publishMessage();
 
-setTimeout(function () {
-  worker1.stop();
-}, 60000);
-setTimeout(function () {
-  worker2.stop();
-}, 60000);
+setTimeout(() => worker1.stop(), 60000);
+setTimeout(() => worker2.stop(), 60000);

@@ -1,7 +1,8 @@
-import { JobQueue, JobProcessedStatus } from '../src/index';
-import { queueConfig, workerConfig, topic } from './test-config';
-import { repeat } from 'lodash';
+// tslint:disable: no-console
 import assert from 'assert';
+import { repeat } from 'lodash';
+import { JobProcessedStatus, JobQueue } from '../src/index';
+import { queueConfig, topic, workerConfig } from './test-config';
 
 const q = new JobQueue(queueConfig);
 
@@ -18,7 +19,7 @@ let batchSize = 1;
 const delayTimeMS = 1000;
 
 // create the first worker
-const worker1 = q.createWorker(workerConfig, function (message) {
+const worker1 = q.createWorker(workerConfig, (message) => {
   worker1Messages += 1;
   messagesHandled += 1;
   console.log(`>>worker1 handling message #${worker1Messages}`, message);
@@ -26,33 +27,31 @@ const worker1 = q.createWorker(workerConfig, function (message) {
     batchSize = 10;
   }
   return new Promise((resolve) => {
-    setTimeout(function () {
+    setTimeout(() => {
       resolve({status: JobProcessedStatus.ok, message: 'success'});
     }, timeToProcessJobMS);
   });
-}, function (cb) {
-  return cb({
-    delayTimeMS,
+}, (cb) => cb({
     batchSize,
-  });
-});
+    delayTimeMS,
+  }),
+);
 
 // create the second worker
-const worker2 = q.createWorker(workerConfig, function (message) {
+const worker2 = q.createWorker(workerConfig, (message) => {
   worker2Messages += 1;
   messagesHandled += 1;
   console.log(`>>worker2 handling message #${worker2Messages}`, message);
-  return new Promise((resolve, reject) => {
-    setTimeout(function () {
+  return new Promise((resolve) => {
+    setTimeout(() => {
       resolve({status: JobProcessedStatus.ok, message: 'failure'});
     }, timeToProcessJobMS);
   });
-}, function (cb) {
-  return cb({
+}, (cb) => cb({
     batchSize: 1,
     delayTimeMS: 1000,
-  });
-});
+  }),
+);
 
 function publishMessage() {
   const messageContent = {
@@ -82,17 +81,13 @@ function publishMessage() {
   });
 }
 
-
 // start publishing messages
+console.log('Publishing messages...');
 publishMessage();
 
-setTimeout(function () {
-  worker1.stop();
-}, 600000);
+setTimeout(() => worker1.stop(), 600000);
 
-setTimeout(function () {
-  worker2.stop();
-}, 600000);
+setTimeout(() => worker2.stop(), 600000);
 
 function endMessage() {
   if (messagesHandled >= messagesToPublish) {
