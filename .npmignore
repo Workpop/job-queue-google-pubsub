@@ -1,5 +1,7 @@
 src
 test
-flow-typed
 .idea/
 node_modules
+ts*.json
+*lock*
+*ignore
