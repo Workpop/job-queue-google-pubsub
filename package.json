@@ -4,10 +4,11 @@
   "description": "Job queue over Google pubsub",
   "main": "lib/index.js",
   "scripts": {
-    "build": "babel ./src --ignore test --out-dir ./lib",
-    "lint": "eslint ./src",
-    "test": "babel-node test/test.js",
-    "ratetest": "babel-node test/rate-test.js",
+    "build": "tsc",
+    "prepublishOnly": "yarn build",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "test": "ts-node test/test.ts",
+    "ratetest": "ts-node test/rate-test.ts",
     "release": "standard-version"
   },
   "keywords": [
@@ -19,16 +20,16 @@
   "author": "Workpop",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/pubsub": "^0.29.1",
+    "@google-cloud/pubsub": "^0.30.0",
+    "@workpop/simple-logger": "^1.4.1",
     "lodash": "^4.17.11"
   },
   "devDependencies": {
-    "@workpop/eslint-config-workpop": "1.1.0",
-    "babel-cli": "^6.26.0",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
-    "babel-preset-es2016": "^6.24.1",
+    "@types/lodash": "^4.14.134",
     "eslint": "^5.16.0",
-    "standard-version": "^6.0.1"
+    "standard-version": "^6.0.1",
+    "ts-node": "^8.3.0",
+    "tslint": "^5.17.0",
+    "typescript": "^3.5.2"
   }
 }

@@ -1,8 +1,4 @@
-/**
- * @param { Buffer | string } data
- * @param { { [x: string]: string; } } attributes
- */
-export function getContent(data, attributes) {
+export function getContent(data: Buffer | string, attributes: { [x: string]: string; }) {
   // check data is a buffer or a string
   const contents = data instanceof Buffer ? data.toString() : data;
 
