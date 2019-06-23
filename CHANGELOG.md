@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.7.0](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.6.0...v0.7.0) (2019-06-23)
+
+
+### Features
+
+* Update pubsub to v0.30 & convert to TS ([#8](https://github.com/Workpop/job-queue-google-pubsub/issues/8)) ([a21a4b1](https://github.com/Workpop/job-queue-google-pubsub/commit/a21a4b1))
+
+
+
 ## [0.6.0](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.5.0...v0.6.0) (2019-06-17)
 
 
