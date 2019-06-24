@@ -124,6 +124,12 @@ export class SyncWorker {
             return;
           }
           error('Exiting:', err);
+          // mark the worker as stopped and resolve the worker promise with the error
+          this._stopped = true;
+          if (this._workerResolve !== undefined) {
+            this._workerResolve(err);
+          }
+          this._workerResolve = undefined;
         });
   }
 
