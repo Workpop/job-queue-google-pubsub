@@ -1,4 +1,5 @@
 import { Message, PubSub, Subscription } from '@google-cloud/pubsub';
+import { GoogleAuth } from 'google-auth-library';
 import { getContent } from './get-content';
 import { error, trace, warn } from './log';
 import { JobProcessedStatus } from './status';
@@ -42,7 +43,8 @@ export class AsyncWorker {
   constructor(queueConfig: IQueueConfig,
               subscriptionConfig: IWorkerConfig,
               jobHandler: (message: any) => Promise<{ status: number }>) {
-    this._pubsubClient = new PubSub(queueConfig);
+    // specify auth explicitly https://github.com/googleapis/nodejs-pubsub/issues/318#issuecomment-499915917
+    this._pubsubClient = new PubSub({ ...queueConfig, auth: new GoogleAuth(queueConfig) });
     this._batchSize = subscriptionConfig.batchSize || 1;
     this._config = subscriptionConfig;
     const topic = this._pubsubClient.topic(subscriptionConfig.topic);
