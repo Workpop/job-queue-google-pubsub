@@ -1,5 +1,6 @@
 import { v1 } from '@google-cloud/pubsub';
 import { Status } from '@grpc/grpc-js/build/src/constants';
+import { GoogleAuth } from 'google-auth-library';
 import {
   first, get, isFunction, map,
 } from 'lodash';
@@ -39,7 +40,8 @@ export class SyncWorker {
               subscriptionConfig: IWorkerConfig,
               jobHandler: (message: any) => Promise<{ status: number }>,
               processingRateConfigUpdateCallback: (cb: (arg0: any) => void) => void) {
-    this._client = new v1.SubscriberClient(queueConfig);
+    // specify auth explicitly https://github.com/googleapis/nodejs-pubsub/issues/318#issuecomment-499915917
+    this._client = new v1.SubscriberClient({ ...queueConfig, auth: new GoogleAuth(queueConfig) });
     this._batchSize = subscriptionConfig.batchSize || 1;
     this._delayTimeMS = 100;
     this._subscription = subscriptionConfig.subscription;
