@@ -123,6 +123,14 @@ export class SyncWorker {
             this._reschedule();
             return;
           }
+          if (err.code === Status.INTERNAL ||
+            err.code === Status.ABORTED ||
+            err.code === Status.CANCELLED) {
+            // unexpected transient error, log and continue
+            error('Unexpected error: ', err.code, err);
+            this._reschedule();
+            return;
+          }
           error('Exiting:', err);
           // mark the worker as stopped and resolve the worker promise with the error
           this._stopped = true;
