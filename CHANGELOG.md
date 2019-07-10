@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.3](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.2...v0.7.3) (2019-07-10)
+
+
+### Bug Fixes
+
+* **errorHandling:** More transient error handling ([df97ede](https://github.com/Workpop/job-queue-google-pubsub/commit/df97ede))
+* **publisher:** Add support for plain values ([2de8619](https://github.com/Workpop/job-queue-google-pubsub/commit/2de8619))
+* **worker:** Handle internal errors and retry with backoff ([6ea20d1](https://github.com/Workpop/job-queue-google-pubsub/commit/6ea20d1))
+
+
+
 ### [0.7.2](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.1...v0.7.2) (2019-06-24)
 
 
