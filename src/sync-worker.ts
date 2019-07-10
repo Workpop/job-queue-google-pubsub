@@ -1,5 +1,6 @@
 import { v1 } from '@google-cloud/pubsub';
 import { Status } from '@grpc/grpc-js/build/src/constants';
+import { Backoff, fibonacci } from 'backoff';
 import { GoogleAuth } from 'google-auth-library';
 import {
   first, get, isFunction, map,
@@ -36,6 +37,8 @@ export class SyncWorker {
 
   private _workerResolve: (value?: any | PromiseLike<any>) => void;
 
+  private _backoff: Backoff;
+
   constructor(queueConfig: IQueueConfig,
               subscriptionConfig: IWorkerConfig,
               jobHandler: (message: any) => Promise<{ status: number }>,
@@ -48,6 +51,8 @@ export class SyncWorker {
     this._jobHandler = jobHandler;
     this._stopped = true;
     this._processingRateConfigUpdateCallback = processingRateConfigUpdateCallback;
+    this._backoff = fibonacci();
+    this._backoff.on('backoff', this._backoffRetry.bind(this));
 
     this._updateProcessingRateConfig = this._updateProcessingRateConfig.bind(this);
   }
@@ -120,7 +125,7 @@ export class SyncWorker {
             err.code === Status.RESOURCE_EXHAUSTED ||
             err.code === Status.UNAVAILABLE) {
             // timeout waiting for a message or other transient error
-            this._reschedule();
+            this._reschedule(err);
             return;
           }
           if (err.code === Status.INTERNAL ||
@@ -128,7 +133,7 @@ export class SyncWorker {
             err.code === Status.CANCELLED) {
             // unexpected transient error, log and continue
             error('Unexpected error: ', err.code, err);
-            this._reschedule();
+            this._reschedule(err);
             return;
           }
           error('Exiting:', err);
@@ -138,17 +143,28 @@ export class SyncWorker {
             this._workerResolve(err);
           }
           this._workerResolve = undefined;
+          this._backoff.reset();
         });
   }
 
-  private _reschedule() {
+  private _reschedule(err?: Error) {
     if (this._stopped) {
       if (this._workerResolve !== undefined) {
         this._workerResolve('Worker has been stopped');
       }
+      this._backoff.reset();
+    } else if (err) {
+        this._backoff.backoff(err);
     } else {
+      // reschedule after success call, reset backoff and set timeout
+      this._backoff.reset();
       setTimeout(() => this._processNextMessages(), this._delayTimeMS);
     }
+  }
+
+  private _backoffRetry(retry: number, delay: number) {
+    trace(`${retry} retrying after ${delay}ms`);
+    this._processNextMessages();
   }
 
   /**
