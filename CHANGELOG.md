@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.6](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.5...v0.7.6) (2019-10-07)
+
+
+### Bug Fixes
+
+* **error:** better handing of deadline exceeded errors ([eec3513](https://github.com/Workpop/job-queue-google-pubsub/commit/eec3513))
+
+
+
 ### [0.7.5](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.4...v0.7.5) (2019-10-07)
 
 

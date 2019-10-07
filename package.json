@@ -1,6 +1,6 @@
 {
   "name": "@workpop/job-queue-google-pubsub",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Job queue over Google pubsub",
   "main": "lib/index.js",
   "scripts": {
