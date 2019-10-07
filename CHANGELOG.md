@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.4](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.3...v0.7.4) (2019-10-07)
+
+
+### Bug Fixes
+
+* **worker:** fixed error handling in getting subscription ([239c10d](https://github.com/Workpop/job-queue-google-pubsub/commit/239c10d))
+
+
+
 ### [0.7.3](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.2...v0.7.3) (2019-07-10)
 
 
