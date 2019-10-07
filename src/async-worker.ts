@@ -1,4 +1,6 @@
 import { Message, PubSub, Subscription } from '@google-cloud/pubsub';
+import { BatchError } from '@google-cloud/pubsub/build/src/message-queues';
+import { Status } from '@grpc/grpc-js/build/src/constants';
 import { GoogleAuth } from 'google-auth-library';
 import { getContent } from './get-content';
 import { error, trace, warn } from './log';
@@ -124,7 +126,19 @@ export class AsyncWorker {
     });
   }
 
-  private _errorHandler(err: any) {
+  private _errorHandler(err: BatchError) {
+    if (err.code === Status.DEADLINE_EXCEEDED) {
+      if (err.details && err.details === 'Failed to connect before the deadline') {
+        // reconnect
+        this._subscription.close().then(() => this._closeHandler());
+        return;
+      } else if (err.ackIds && Array.isArray(err.ackIds) && err.ackIds.length > 0) {
+        if (err.message && err.message.indexOf('modifyAckDeadline') >= 0) {
+          // there is no way to retry this right now using the ackIds, see
+          // https://github.com/googleapis/nodejs-pubsub/issues/575#issuecomment-539211055
+        }
+      }
+    }
     error(`Error receiving messages for ${this._config.subscription}`, err);
   }
 
