@@ -100,7 +100,7 @@ export class AsyncWorker {
       }, (err) => {
         // Unable to get the subscription, bail out
         error('Error getting subscription', err);
-        this._stop(error);
+        this._stop(err);
       });
   }
 
