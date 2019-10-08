@@ -100,6 +100,11 @@ export class AsyncWorker {
         this._subscription.on('error', this._errorHandler);
         this._subscription.on('close', this._closeHandler);
       }, (err) => {
+        if (err.code === Status.DEADLINE_EXCEEDED) {
+          // retry getting the subscription
+          this._subscription.close(() => this._createSubscriptionAndAttachListeners());
+          return;
+        }
         // Unable to get the subscription, bail out
         error('Error getting subscription', err);
         this._stop(err);
