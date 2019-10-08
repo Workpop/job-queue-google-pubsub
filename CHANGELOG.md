@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.7](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.6...v0.7.7) (2019-10-08)
+
+
+### Bug Fixes
+
+* **deps:** updated google-auth-library to v 5 used by pubsub 0.31.1 ([060737b](https://github.com/Workpop/job-queue-google-pubsub/commit/060737b))
+* **retry:** getting the subscription when deadline exceeded ([d5a1034](https://github.com/Workpop/job-queue-google-pubsub/commit/d5a1034))
+
+
+
 ### [0.7.6](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.5...v0.7.6) (2019-10-07)
 
 
