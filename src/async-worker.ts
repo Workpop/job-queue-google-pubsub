@@ -42,25 +42,19 @@ export class AsyncWorker {
 
   private _workerResolve: (value?: void | PromiseLike<void>) => void;
 
+  private _queueConfig: IQueueConfig;
+
   constructor(queueConfig: IQueueConfig,
               subscriptionConfig: IWorkerConfig,
               jobHandler: (message: any) => Promise<{ status: number }>) {
-    // specify auth explicitly https://github.com/googleapis/nodejs-pubsub/issues/318#issuecomment-499915917
-    this._pubsubClient = new PubSub({ ...queueConfig, auth: new GoogleAuth(queueConfig) });
+    this._queueConfig = queueConfig;
     this._batchSize = subscriptionConfig.batchSize || 1;
     this._config = subscriptionConfig;
-    const topic = this._pubsubClient.topic(subscriptionConfig.topic);
-    this._subscription = topic.subscription(subscriptionConfig.subscription, {
-      ackDeadline: AsyncWorker._ackDeadline,
-      flowControl: {
-        allowExcessMessages: false,
-        maxMessages: this._batchSize,
-      },
-    });
     this._jobHandler = jobHandler;
     this._stopped = true;
     this._errorHandler = this._errorHandler.bind(this);
     this._closeHandler = this._closeHandler.bind(this);
+    this._initClient();
   }
 
   public start() {
@@ -80,6 +74,19 @@ export class AsyncWorker {
     this._closeHandler();
     this._subscription.close();
     warn('Stop worker has been issued');
+  }
+
+  private _initClient() {
+    // specify auth explicitly https://github.com/googleapis/nodejs-pubsub/issues/318#issuecomment-499915917
+    this._pubsubClient = new PubSub({ ...this._queueConfig, auth: new GoogleAuth(this._queueConfig) });
+    const topic = this._pubsubClient.topic(this._config.topic);
+    this._subscription = topic.subscription(this._config.subscription, {
+      ackDeadline: AsyncWorker._ackDeadline,
+      flowControl: {
+        allowExcessMessages: false,
+        maxMessages: this._batchSize,
+      },
+    });
   }
 
   private _stop(message: any) {
@@ -102,7 +109,10 @@ export class AsyncWorker {
       }, (err) => {
         if (err.code === Status.DEADLINE_EXCEEDED) {
           // retry getting the subscription
-          this._subscription.close(() => this._createSubscriptionAndAttachListeners());
+          this._subscription.close(() => {
+            this._initClient();
+            this._createSubscriptionAndAttachListeners();
+          });
           return;
         }
         // Unable to get the subscription, bail out
