@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.8](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.7...v0.7.8) (2019-10-09)
+
+
+### Bug Fixes
+
+* **deps:** Pin google-gax version to 1.6.2 ([ba8e42a](https://github.com/Workpop/job-queue-google-pubsub/commit/ba8e42a))
+* **error:** recreate the pubsub client once subscription fails ([aed37f7](https://github.com/Workpop/job-queue-google-pubsub/commit/aed37f7))
+
+
+
 ### [0.7.7](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.6...v0.7.7) (2019-10-08)
 
 
