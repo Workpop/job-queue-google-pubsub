@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.9](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.8...v0.7.9) (2019-10-11)
+
+
+### Bug Fixes
+
+* **deps:** downgrade pubsub to 0.30.1 & google-gax to 1.1.4 ([6a80860](https://github.com/Workpop/job-queue-google-pubsub/commit/6a80860))
+* **errorHandling:** on publish promise rejection ([a07239a](https://github.com/Workpop/job-queue-google-pubsub/commit/a07239a))
+* **retry:** stop promise rejections ([ac12564](https://github.com/Workpop/job-queue-google-pubsub/commit/ac12564))
+
+
+
 ### [0.7.8](https://github.com/Workpop/job-queue-google-pubsub/compare/v0.7.7...v0.7.8) (2019-10-09)
 
 
