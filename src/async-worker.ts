@@ -54,6 +54,7 @@ export class AsyncWorker {
     this._stopped = true;
     this._errorHandler = this._errorHandler.bind(this);
     this._closeHandler = this._closeHandler.bind(this);
+    this._retryBindSubscription = this._retryBindSubscription.bind(this);
     this._initClient();
   }
 
@@ -109,16 +110,21 @@ export class AsyncWorker {
       }, (err) => {
         if (err.code === Status.DEADLINE_EXCEEDED) {
           // retry getting the subscription
-          this._subscription.close(() => {
-            this._initClient();
-            this._createSubscriptionAndAttachListeners();
-          });
+          this._subscription.close()
+            .then(this._retryBindSubscription, this._retryBindSubscription);
           return;
         }
         // Unable to get the subscription, bail out
         error('Error getting subscription', err);
         this._stop(err);
       });
+  }
+
+  private _retryBindSubscription() {
+    if (!this._stopped) {
+      this._initClient();
+      this._createSubscriptionAndAttachListeners();
+    }
   }
 
   private _processNextMessage(message: Message) {
@@ -145,13 +151,15 @@ export class AsyncWorker {
     if (err.code === Status.DEADLINE_EXCEEDED) {
       if (err.details && err.details === 'Failed to connect before the deadline') {
         // reconnect
-        this._subscription.close().then(() => this._closeHandler());
-        return;
+        this._subscription.close()
+          .then(this._closeHandler, this._closeHandler);
       } else if (err.ackIds && Array.isArray(err.ackIds) && err.ackIds.length > 0) {
         if (err.message && err.message.indexOf('modifyAckDeadline') >= 0) {
           // there is no way to retry this right now using the ackIds, see
           // https://github.com/googleapis/nodejs-pubsub/issues/575#issuecomment-539211055
         }
+        this._subscription.close()
+          .then(this._closeHandler, this._closeHandler);
       }
     }
     error(`Error receiving messages for ${this._config.subscription}`, err);
@@ -167,8 +175,6 @@ export class AsyncWorker {
     }
 
     // restart listener if not stopped
-    if (!this._stopped) {
-      this._createSubscriptionAndAttachListeners();
-    }
+    this._retryBindSubscription();
   }
 }
