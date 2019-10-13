@@ -39,12 +39,13 @@ export class SyncWorker {
 
   private _backoff: Backoff;
 
+  private _queueConfig: IQueueConfig;
+
   constructor(queueConfig: IQueueConfig,
               subscriptionConfig: IWorkerConfig,
               jobHandler: (message: any) => Promise<{ status: number }>,
               processingRateConfigUpdateCallback: (cb: (arg0: any) => void) => void) {
-    // specify auth explicitly https://github.com/googleapis/nodejs-pubsub/issues/318#issuecomment-499915917
-    this._client = new v1.SubscriberClient({ ...queueConfig, auth: new GoogleAuth(queueConfig) });
+    this._queueConfig = queueConfig;
     this._batchSize = subscriptionConfig.batchSize || 1;
     this._delayTimeMS = 100;
     this._subscription = subscriptionConfig.subscription;
@@ -59,6 +60,7 @@ export class SyncWorker {
 
   public start() {
     this._stopped = false;
+    this._initClient();
     this._processNextMessages();
     return new Promise((resolve) => {
       this._workerResolve = resolve;
@@ -117,14 +119,13 @@ export class SyncWorker {
           }),
         );
       })
-      .then(() => {
-          this._reschedule();
-        },
+      .then(() => this._reschedule(),
         (err) => {
           if (err.code === Status.DEADLINE_EXCEEDED ||
             err.code === Status.RESOURCE_EXHAUSTED ||
             err.code === Status.UNAVAILABLE) {
             // timeout waiting for a message or other transient error
+            this._initClient();
             this._reschedule(err);
             return;
           }
@@ -219,5 +220,10 @@ export class SyncWorker {
         return Promise.resolve(error);
       },
     );
+  }
+
+  private _initClient() {
+    // specify auth explicitly https://github.com/googleapis/nodejs-pubsub/issues/318#issuecomment-499915917
+    this._client = new v1.SubscriberClient({ ...this._queueConfig, auth: new GoogleAuth(this._queueConfig) });
   }
 }
