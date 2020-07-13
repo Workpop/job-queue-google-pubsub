@@ -30,7 +30,7 @@
     "@types/backoff": "^2.5.1",
     "@types/lodash": "^4.14.134",
     "eslint": "^5.16.0",
-    "standard-version": "^6.0.1",
+    "standard-version": "^8.0.1",
     "ts-node": "^8.3.0",
     "tslint": "^5.17.0",
     "typescript": "^3.6.3"
