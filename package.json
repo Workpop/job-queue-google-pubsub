@@ -24,7 +24,7 @@
     "@workpop/simple-logger": "^1.4.1",
     "backoff": "^2.5.0",
     "google-auth-library": "^4.0.0",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/backoff": "^2.5.1",
